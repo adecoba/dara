@@ -651,6 +651,67 @@
             margin-top: 6px;
         }
 
+        /* ===== AUDIO PLAYER STYLING ===== */
+        .audio-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(255, 252, 248, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 50px;
+            padding: 8px 16px 8px 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .audio-container audio {
+            width: 160px;
+            height: 36px;
+            border-radius: 30px;
+            outline: none;
+        }
+
+        .audio-container audio::-webkit-media-controls-panel {
+            background: transparent;
+        }
+
+        .audio-label {
+            font-size: 0.75rem;
+            color: var(--primary-dark);
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+
+        @media (max-width: 480px) {
+            .audio-container {
+                bottom: 10px;
+                right: 10px;
+                padding: 6px 12px 6px 14px;
+                border-radius: 30px;
+            }
+            .audio-container audio {
+                width: 120px;
+                height: 30px;
+            }
+            .audio-label {
+                font-size: 0.6rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .audio-container audio {
+                width: 80px;
+            }
+            .audio-label {
+                display: none;
+            }
+        }
+
         /* Responsif untuk layar kecil */
         @media (max-width: 480px) {
             header h1 { font-size: 2.4rem; }
@@ -752,6 +813,15 @@
         <div id="result-text"></div>
     </div>
 
+    <!-- ===== AUDIO PLAYER ===== -->
+    <div class="audio-container">
+        <span class="audio-label">🎵</span>
+        <audio id="bgAudio" loop preload="auto">
+            <source src="lagu.mp3" type="audio/mpeg">
+            Browser Anda tidak mendukung audio.
+        </audio>
+    </div>
+
     <!-- ===== MODAL POP-UP UNTUK SURAT ===== -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-content">
@@ -792,6 +862,29 @@
         }
         setInterval(createHeart, 500);
 
+        // ===== AUDIO PLAYER =====
+        const audio = document.getElementById('bgAudio');
+        
+        // Coba putar audio otomatis (dengan fallback jika browser memblokir)
+        function playAudio() {
+            audio.play().catch(function(error) {
+                console.log('Autoplay diblokir oleh browser. Pengguna perlu mengklik play manual.');
+            });
+        }
+
+        // Putar audio saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            playAudio();
+        });
+
+        // Putar audio saat user melakukan klik pertama di halaman (untuk mengatasi blokir autoplay)
+        document.addEventListener('click', function firstClick() {
+            if (audio.paused) {
+                playAudio();
+            }
+            document.removeEventListener('click', firstClick);
+        }, { once: true });
+
         // Envelope
         const envelope = document.getElementById('envelope');
         const flap = document.getElementById('flap');
@@ -806,6 +899,12 @@
             flap.classList.add('open');
             polaroid.classList.add('peek');
             letterOut.classList.add('peek');
+            
+            // Pastikan audio diputar saat amplop dibuka
+            if (audio.paused) {
+                playAudio();
+            }
+            
             confetti({
                 particleCount: 80,
                 spread: 65,
